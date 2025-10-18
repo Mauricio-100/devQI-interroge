@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multi-Agent AI Interface</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    label, select, textarea, input, button { display: block; margin: 10px 0; width: 100%; }
+    textarea { height: 100px; }
+    #response { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>🧠 Interface Multi-Agent</h1>
+
+  <label for="agent">Agent :</label>
+  <select id="agent">
+    <option value="GPT">GPT</option>
+    <option value="Gemini">Gemini</option>
+    <option value="DeepSeek">DeepSeek</option>
+    <option value="Copilot">Copilot</option>
+  </select>
+
+  <label for="tool">Outil LangChain :</label>
+  <select id="tool">
+    <option value="">(aucun)</option>
+    <option value="searx">SearxNG</option>
+    <option value="wolfram">WolframAlpha</option>
+  </select>
+
+  <label for="context">Contexte :</label>
+  <textarea id="context">Nous parlons de science, technologie et culture.</textarea>
+
+  <label for="question">Question :</label>
+  <input type="text" id="question" placeholder="Pose ta question ici..." />
+
+  <button onclick="sendQuery()">Envoyer</button>
+
+  <h2>Réponse :</h2>
+  <div id="response">...</div>
+
+  <script>
+    async function sendQuery() {
+      const agent = document.getElementById('agent').value;
+      const tool = document.getElementById('tool').value;
+      const context = document.getElementById('context').value;
+      const question = document.getElementById('question').value;
+
+      const auth = await fetch('/auth-agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent })
+      });
+
+      const authResult = await auth.json();
+      if (!authResult.access) {
+        document.getElementById('response').textContent = "⛔ Agent non autorisé.";
+        return;
+      }
+
+      const res = await fetch('/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, context, tool })
+      });
+
+      const data = await res.json();
+      document.getElementById('response').textContent = data.answer || "❌ Aucune réponse reçue.";
+    }
+  </script>
+</body>
+</html>
